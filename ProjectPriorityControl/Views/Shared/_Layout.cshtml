@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>@ViewData["Title"] - ProjectPriorityControl</title>
+    <!-- plugins:css -->
+    <link href="~/lib/iconfonts/mdi/css/materialdesignicons.min.css" rel="stylesheet" />
+    <link href="~/lib/css/vendor.bundle.base.css" rel="stylesheet" />
+    <link href="~/lib/css/vendor.bundle.addons.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap4-tagsinput-master/tagsinput.css" rel="stylesheet" />
+    <!-- endinject -->
+    <!-- plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <link href="~/css/style.css" rel="stylesheet" />
+    <!-- endinject -->
+    @RenderSection("Styles", required: false)
+    <link rel="shortcut icon" href="~/favicon.ico" />
+</head>
+
+<body>
+    <div class="container-scroller">
+        <!-- partial:../../partials/_navbar.html -->
+        <nav class="navbar default-layout col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+            <div class="text-center navbar-brand-wrapper d-flex align-items-top justify-content-center">
+                <a class="navbar-brand brand-logo" href="@Url.Action("Index","Home")">
+                    <strong class="text-black">PTPC</strong>
+                </a>
+                <a class="navbar-brand brand-logo-mini" href="@Url.Action("Index","Home")">
+                    <strong class="text-black">PTPC</strong>
+                </a>
+            </div>
+            <div class="navbar-menu-wrapper d-flex align-items-center">
+                <ul class="navbar-nav navbar-nav-right">
+                    <partial name="_LoginPartial" />
+                </ul>
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+                    <span class="mdi mdi-menu"></span>
+                </button>
+            </div>
+        </nav>
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <nav class="sidebar sidebar-offcanvas" id="sidebar">
+                <ul class="nav">
+                    <li class="nav-item nav-profile">
+                        <div class="nav-link">
+                            <div class="user-wrapper">
+                                <div class="text-wrapper">
+                                    <p class="profile-name">@User.Identity.Name</p>
+                                    <div>
+                                        <small class="designation text-muted">
+                                            @HttpContextAccessor.HttpContext.Session.GetString("ProjectName")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success btn-block" id="change-project-button">
+                                Change Project
+                                <i class="mdi mdi-plus"></i>
+                            </button>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index","Home")">
+                            <i class="menu-icon mdi mdi-view-dashboard"></i>
+                            <span class="menu-title">Dashboard</span>
+                        </a>
+                    </li>
+                    @if (!String.IsNullOrWhiteSpace(HttpContextAccessor.HttpContext.Session.GetString("ProjectId")))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link collapsed" data-toggle="collapse" href="#project" aria-expanded="false" aria-controls="auth">
+                                <i class="menu-icon mdi mdi-sitemap"></i>
+                                <span class="menu-title">Project</span>
+                                <i class="menu-arrow"></i>
+                            </a>
+                            <div class="collapse" id="project" style="">
+                                <ul class="nav flex-column sub-menu">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="@Url.Action("Summary","Project",new { id = HttpContextAccessor.HttpContext.Session.GetString("ProjectId") })"> Summary </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="@Url.Action("Index","Task")"> Task </a>
+                                    </li>
+                                    @if (User.IsInRole("Manager"))
+                                    {
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="@Url.Action("Index","Criteria")"> Criteria </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="@Url.Action("Index","Member")"> Member </a>
+                                        </li>
+                                    }
+
+                                </ul>
+                            </div>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index","Project")">
+                                <i class="menu-icon mdi mdi-library-books"></i>
+                                <span class="menu-title">Projects</span>
+                            </a>
+                        </li>
+                        @if (User.IsInRole("Manager"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("Index","Criteria")">
+                                    <i class="menu-icon mdi mdi-file-document-box"></i>
+                                    <span class="menu-title">Criteria</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/Identity/Account/">
+                                    <i class="menu-icon mdi mdi-account-multiple"></i>
+                                    <span class="menu-title">User</span>
+                                </a>
+                            </li>
+                        }
+
+                    }
+
+
+                </ul>
+            </nav>
+
+            <!-- partial -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <partial name="_CookieConsentPartial" />
+                    @RenderBody()
+                </div>
+                <!-- content-wrapper ends -->
+                <!-- partial:../../partials/_footer.html -->
+                <footer class="footer">
+                    <div class="container-fluid clearfix">
+                        <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">
+                            Copyright © @DateTime.Now.Year
+                            PTPC. All rights reserved.
+                        </span>
+                        @*<span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">
+                            Hand-crafted & made with
+                            <i class="mdi mdi-heart text-danger"></i>
+                        </span>*@
+                    </div>
+                </footer>
+                <!-- partial -->
+            </div>
+            <!-- main-panel ends -->
+        </div>
+        <!-- page-body-wrapper ends -->
+    </div>
+
+
+    <!-- change-project-modal-->
+
+    <partial name="_ChangeProjectPartial" />
+
+
+    <!-- container-scroller -->
+    <!-- plugins:js -->
+    <script src="~/lib/js/vendor.bundle.base.js"></script>
+    <script src="~/lib/js/vendor.bundle.addons.js"></script>
+    <script src="~/lib/bootstrap4-tagsinput-master/tagsinput.js"></script>
+    <!-- endinject -->
+    <!-- Plugin js for this page-->
+    <!-- End plugin js for this page-->
+    <!-- inject:js -->
+    <script src="~/js/off-canvas.js"></script>
+    @*<script src="../../js/misc.js"></script>*@
+    <!-- endinject -->
+    <script>
+        $("#change-project-button").click(function () {
+            $.ajax({
+                type: "GET",
+                url: "/Project/_ChangeProject",
+                contentType: "application/json; charset=utf-8",
+                datatype: "json",
+                success: function (data) {
+                    $('#change-project-content').html(data);
+                    $('#change-project-modal').modal('show');
+                },
+                error: function () {
+                    alert("Dynamic content load failed.");
+                }
+            });
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+    <!-- End custom js for this page-->
+</body>
+
+</html>
+

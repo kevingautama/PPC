@@ -1,0 +1,45 @@
+﻿@page
+@model AssignRoleModel
+@{
+    ViewData["Title"] = "Assign Role";
+}
+
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <a href="~/Identity/Account/Edit?id=@Model.Input.Id" class="btn btn-secondary btn-fw">Back</a>
+            <hr />
+            <h4 class="card-title">Assign role</h4>
+            <form id="assign-form" method="post">
+                <div class="row">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                </div>
+                <input asp-for="Input.Id" type="hidden" />
+                <div class="form-group">
+                    <label asp-for="Input.Username"></label>
+                    <input value="@Model.Input.Username" disabled class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Input.Role"></label>
+                    <select asp-for="Input.Role" asp-items="Model.Roles" class="form-control" required></select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Assign</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/parsley/dist/parsley.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#assign-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+        });
+    </script>
+}

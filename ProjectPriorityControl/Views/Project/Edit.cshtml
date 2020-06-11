@@ -1,0 +1,66 @@
+﻿@model ProjectPriorityControl.ViewModels.CreateProjectViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <form id="edit-form" method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Name</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Name" type="text" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Code</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Code" type="text" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3">Description</label>
+                            <div class="col-sm-9">
+                                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Tags</label>
+                            <div class="col-sm-9">
+                                <input type="text" asp-for="Tags" class="form-control" data-role="tagsinput" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">Edit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/parsley/dist/parsley.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#edit-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+        });
+    </script>
+}

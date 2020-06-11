@@ -1,0 +1,530 @@
+﻿@model ProjectPriorityControl.ViewModels.TaskViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+@section Styles{
+    <link href="~/lib/bootstrap-slider-master/dist/css/bootstrap-slider.css" rel="stylesheet" />
+}
+
+<div class="row">
+    <div class="col-md-8 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <a href="@Url.Action("Index","Task")" class="btn btn-secondary btn-fw mb-2">Back</a> <button class="btn btn-primary mb-2" id="add-notes-button"><i class="mdi mdi-plus"></i> Add Notes</button>
+                <a class="btn btn-primary mb-2" asp-action="AddDepedency" asp-controller="Task" asp-route-id="@Model.Id"><i class="mdi mdi-share-variant"></i> Set Dependency</a>
+                <button class="btn btn-primary mb-2" id="setunsettaskprioritize"><i class="mdi mdi-format-line-weight"></i>Set/Unset Priority</button>
+                @if (User.IsInRole("Manager"))
+                {
+                    <button class="btn btn-primary mb-2" id="set-rating-button"><i class="mdi mdi-chart-histogram"></i> Set Rating</button>
+                    <button type="button" class="btn btn-danger btn-fw mb-2" data-toggle="modal" data-target="#delete-modal">Delete</button>
+                }
+                <hr />
+                <form id="task-form" method="post">
+                    <input type="hidden" asp-for="Rank" />
+                    <input type="hidden" asp-for="Score" />
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="LastUpdated" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label">Name</label>
+                                <div class="col-sm-8">
+                                    <input asp-for="Name" class="form-control" required="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label">Type</label>
+                                <div class="col-sm-8">
+                                    <select asp-for="Type" class="form-control" required>
+                                        <option>Bug</option>
+                                        <option>Task</option>
+                                        <option>Feature</option>
+                                        <option>Issue</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label">Description</label>
+                                <div class="col-sm-8">
+                                    <input asp-for="Description" class="form-control" required="" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label">Is Prioritize</label>
+                                <div class="col-sm-8">
+                                    <input disabled class="form-control" id="prioritize" value="@Model.IsPrioritize" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                @if (Model.Status != "Finish")
+                {
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#assign-task-modal">Assign</button>
+                }
+                @if (Model.Status == "Pending" && (Model.AssignedTo == User.Identity.Name || User.IsInRole("Manager")))
+                {
+                    <button class="btn btn-primary" id="start-task-button">Start</button>
+                }
+                else if (Model.Status == "Progress" && (Model.AssignedTo == User.Identity.Name || User.IsInRole("Manager")))
+                {
+                    <button class="btn btn-primary" id="finish-task-button">Done</button>
+                }
+                <hr />
+                <div class="form-group row">
+                    <label class="col-sm-12 col-md-3 col-form-label">Assignee</label>
+                    <div class="col-sm-12 col-md-9">
+                        @Model.AssignedTo
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Start Date</label>
+                    <div class="col-sm-9">
+                        @if (Model.StartDate != null)
+                        {
+                            @Model.StartDate.Value.ToShortDateString()
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Finish Date</label>
+                    <div class="col-sm-9">
+                        @if (Model.FinishDate != null)
+                        {
+                            @Model.FinishDate.Value.ToShortDateString()
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label">Status</label>
+                    <div class="col-sm-9">
+                        @Model.Status
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 d-flex align-items-stretch grid-margin">
+        <div class="row flex-grow">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title text-primary mb-5">
+                            Task Rating & Rank Summary
+                            <small class="text-muted float-right">
+                                Last Updated :
+                                @if (Model.LastUpdated != null)
+                                {@Model.LastUpdated.Value.ToShortDateString() }
+                            else
+                            {
+                                <text>-</text>
+                            }
+                            </small>
+                        </h2>
+                        <div class="wrapper d-flex justify-content-between">
+                            <div class="side-left">
+                                <p class="mb-2">Rank priority</p>
+                                <p class="display-3 mb-4 font-weight-light">
+                                    @if (Model.Rank != null)
+                                    {
+                                        string suffix = "th";
+
+                                        if (Model.Rank < 11 || Model.Rank > 20)
+                                        {
+                                            var number = Model.Rank.Value.ToString().ToCharArray()[Model.Rank.Value.ToString().ToCharArray().Length - 1].ToString();
+                                            switch (number)
+                                            {
+                                                case "1":
+                                                    suffix = "st";
+                                                    break;
+                                                case "2":
+                                                    suffix = "nd";
+                                                    break;
+                                                case "3":
+                                                    suffix = "rd";
+                                                    break;
+                                            }
+                                        }
+
+                                        <text>@Model.Rank.Value.ToString()@suffix</text>
+                                    }
+                                    else
+                                    {
+                                        <text>None</text>
+                                    }
+                                </p>
+                            </div>
+                            <div class="side-left">
+                                <p class="mb-2">Score</p>
+                                <p class="display-3 mb-4 font-weight-light">
+                                    @(Model.Score.Value * 100)
+                                </p>
+                            </div>
+
+                        </div>
+                        @if (Model.Ratings.Count() > 0)
+                        {
+                            for (var i = 0; i < Model.Ratings.Count(); i++)
+                            {
+                                <div class="wrapper @if (i > 0) { <text>mt-4</text>} ">
+                                    <div class="d-flex justify-content-between">
+                                        <p class="mb-2" data-toggle="popover" data-content="@Model.Ratings[i].CriteriaDescription">@Model.Ratings[i].CriteriaName</p>
+                                        <p class="mb-2 text-primary">@(Model.Ratings[i].Value * 100)%</p>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: @(Model.Ratings[i].Value*100)%" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="side-left">
+                                <small class="text-muted">Rating is not set</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-primary mb-5">Notes</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="card-description">
+                            Positive
+                        </p>
+                        @{
+                            var positiveNotes = Model.Notes.Where(a => a.Type == "Positive");
+                            @if (positiveNotes.Count() > 0)
+                            {
+                                <ul class="list-arrow">
+                                    @foreach (var item in positiveNotes)
+                                    {
+                                        <li>@item.Content</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <small class="text-muted">No Notes</small>
+                            }
+                        }
+
+                    </div>
+                    <div class="col-md-6">
+                        <p class="card-description">
+                            Negative
+                        </p>
+                        @{
+                            var negativeNotes = Model.Notes.Where(a => a.Type == "Negative");
+                            @if (negativeNotes.Count() > 0)
+                            {
+                                <ul class="list-arrow">
+                                    @foreach (var item in negativeNotes)
+                                    {
+                                        <li>@item.Content</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <small class="text-muted">No Notes</small>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="delete-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Delete Task</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to delete this task? This action is reversible.</p>
+            </div>
+            <div class="modal-footer">
+                <form asp-action="Delete">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-danger btn-fw"> Delete </button>
+                </form>
+
+                <button type="button" class="btn btn-default btn-fw" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="add-notes-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add Notes</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form asp-action="AddNotes" id="notes-form">
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Type</label>
+                        <div class="col-sm-9">
+                            <select name="Type" class="form-control" id="type">
+                                <option>Positive</option>
+                                <option>Negative</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label">Notes</label>
+                        <div class="col-sm-9">
+                            <input name="Content" type="text" class="form-control" id="notes" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="submit" class="btn btn-primary btn-fw"> Add </button>
+                    <button type="button" class="btn btn-default btn-fw" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="set-rating-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Set Rating</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form asp-action="SetRating">
+                <div class="modal-body">
+                    <small>Failed to Get Criteria</small>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" asp-for="Id" />
+                    <button type="button" class="btn btn-primary btn-fw" id="set"> Set </button>
+                    <button type="button" class="btn btn-default btn-fw" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="assign-task-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Assign Task</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form asp-action="AssignTask">
+                <div class="modal-body">
+                    <select class="form-control" name="Id" id="member"></select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-fw" id="assign"> Assign </button>
+                    <button type="button" class="btn btn-default btn-fw" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/parsley/dist/parsley.min.js"></script>
+    <script src="~/lib/bootstrap-slider-master/dist/bootstrap-slider.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('[data-toggle="popover"]').popover({ trigger: "hover" });
+
+            $('#task-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+
+            $('#notes-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+
+            $('#add-notes-button').click(function () {
+                $('#add-notes-modal').modal();
+            });
+
+            $('#start-task-button').click(function () {
+               $.ajax({
+                    type: "POST",
+                    url: "/api/Task/Start/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to start task");
+                    }
+                });
+            });
+
+            $('#finish-task-button').click(function () {
+               $.ajax({
+                    type: "POST",
+                    url: "/api/Task/Finish/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to Finish task");
+                    }
+                });
+            });
+
+            $.ajax({
+                url: "/api/Members/",
+                type: 'GET',
+                success: function (res) {
+                    var htmlString = "";
+                    $(res).each(function (index,data) {
+                        htmlString = htmlString + "<option value='"+data.Id+"'>" + data.Name +" - "+ data.Email + "</option>";
+                    });
+                    $('#assign-task-modal #member').html(htmlString);
+                }
+            });
+
+            $('#set-rating-button').click(function () {
+                 $.ajax({
+                    type: "GET",
+                    url: "/api/Rating/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        var htmlString = "";
+                        $(data).each(function (index, criteria) {
+                            htmlString = htmlString + '<div class="form-group row">' +
+                                '<label class="col-sm-5 col-form-label" data-toggle="popover" data-content="'+ criteria.CriteriaDescription +'">' + criteria.CriteriaName + '</label>' +
+                                '<div class="col-sm-7">' +
+                                '<input type="hidden" id="criteria-id" value="'+criteria.CriteriaId+'" /> <input type="hidden" id="task-id" value="'+criteria.Id+'" /> <input type="hidden" value="'+criteria.Changes+'" id="changes" />' +
+                                '<input class="ex8" type="text" data-slider-min="0" id="rating-value" data-slider-max="100" data-slider-step="1" data-slider-value="' + (criteria.Value * 100) + '" />' +
+                                '</div>' +
+                                '</div>';
+                        })
+                        $('#set-rating-modal .modal-body').html(htmlString);
+                        $("#set-rating-modal .ex8").slider();
+                        $('#set-rating-modal').modal();
+                        $('[data-toggle="popover"]').popover({ trigger: "hover" });
+                    },
+                    error: function () {
+                        alert("Failed to get criteria");
+                    }
+                });
+            });
+
+            $('#set-rating-modal #set').click(function () {
+                var ratingData = [];
+                $('#set-rating-modal .modal-body .form-group.row').each(function (index, data) {
+                    ratingData.push({
+                        id: $(data).find('#task-id').val(),
+                        criteriaId: $(data).find('#criteria-id').val(),
+                        changes: $(data).find('#changes').val(),
+                        value: parseFloat($(data).find('#rating-value').val()) / 100
+                    })
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: "/api/Rating/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(ratingData),
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to set rating");
+                    }
+                });
+            })
+
+            $('#assign-task-modal #assign').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/Task/Assign",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({
+                        taskId: "@Model.Id",
+                        memberId: $('#assign-task-modal #member').val()
+                    }),
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to assign task to user");
+                    }
+                });
+            });
+
+            $('#setunsettaskprioritize').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/TaskPrioritize/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        console.log(data);
+                        if (data === undefined) {
+                            $('#task-form #prioritize').val('No');
+                        }
+                        else {
+                            $('#task-form #prioritize').val('Yes (' + data + ')');
+                        }
+                    },
+                    error: function () {
+                        alert("Failed to assign prioritize");
+                    }
+                })
+            });
+        });
+    </script>
+}

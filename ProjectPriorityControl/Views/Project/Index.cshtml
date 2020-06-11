@@ -1,0 +1,77 @@
+﻿@model IEnumerable<ProjectPriorityControl.ViewModels.ProjectViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+@section Styles{
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+}
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            @if (User.IsInRole("Manager"))
+            {
+                <a href="@Url.Action("Create","Project")" class="btn btn-success btn-fw">New Project</a>
+            }
+            <hr />
+            <div class="table-responsive">
+                <table class="table" id="projects-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Manager</th>
+                            <th>Members</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @item.Code
+                                </td>
+                                <td>
+                                    @item.Name
+                                </td>
+                                <td>
+                                    @item.Manager
+                                </td>
+                                <td>
+                                    @item.MembersCount
+                                </td>
+                                <td>
+                                    @item.Status
+                                </td>
+                                <td>
+                                    <form asp-action="_ChangeProject" asp-controller="Project" method="post">
+                                        <input type="hidden" name="ProjectId" value="@item.Id" />
+                                        <button type="submit" class="btn btn-inverse-light btn-fw">Detail</button>
+                                        @if (User.IsInRole("Manager"))
+                                        {
+                                            <a href="@Url.Action("Edit","Project",new {id= item.Id })" class="btn btn-outline-primary">Edit</a>
+                                        }
+                                    </form>
+                                    
+                                    
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#projects-table').DataTable();
+        })
+    </script>
+}

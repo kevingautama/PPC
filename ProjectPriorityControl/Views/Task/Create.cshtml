@@ -1,0 +1,66 @@
+﻿@model ProjectPriorityControl.Models.Task
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <a href="@Url.Action("Index","Task")" class="btn btn-secondary btn-fw">Back</a>
+            <hr />
+            <form id="task-form" method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Name</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Name" class="form-control" required="" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Type</label>
+                            <div class="col-sm-9">
+                                <select asp-for="Type" class="form-control" required>
+                                    <option>Bug</option>
+                                    <option>Task</option>
+                                    <option>Feature</option>
+                                    <option>Issue</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Description</label>
+                            <div class="col-sm-9">
+                                <input asp-for="Description" class="form-control" required="" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Add</button>
+                <button type="reset" class="btn btn-warning">Reset</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/parsley/dist/parsley.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#task-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+        });
+    </script>
+}
+

@@ -1,0 +1,6 @@
+﻿Existing user for Demo PPC(Project Priority Control)
+- staff
+- manager
+- admin
+
+all user using 'Admin_123' as a password

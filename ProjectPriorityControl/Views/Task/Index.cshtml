@@ -1,0 +1,66 @@
+﻿@model IEnumerable<ProjectPriorityControl.ViewModels.TaskViewModel>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+@section Styles{
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+}
+
+
+<div class="col-lg-12 grid-margin stretch-card">
+    <div class="card">
+        <div class="card-body">
+            <a href="@Url.Action("Create","Task")" class="btn btn-success btn-fw">Add Task</a>
+            <hr />
+            <div class="table-responsive">
+                <table class="table" id="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Assign</th>
+                            <th>Rank</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Name</td>
+                                <td>@item.Type</td>
+                                <td>@item.AssignedTo</td>
+                                <td>
+                                    @if (item.Rank != null)
+                                    {
+                                        @item.Rank
+                                    }
+                                    else
+                                    {
+                                        <text>-</text>
+                                    }
+                                </td>
+                                <td>@item.Status</td>
+                                <td>
+                                    <a asp-action="Edit" asp-controller="Task" asp-route-id="@item.Id" class="btn btn-inverse-light btn-fw">Detail</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#tasks-table').DataTable();
+        })
+    </script>
+}

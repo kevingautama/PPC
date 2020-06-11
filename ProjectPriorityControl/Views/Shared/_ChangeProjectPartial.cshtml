@@ -1,0 +1,41 @@
+﻿<div class="modal fade" id="change-project-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Change Project</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body ">
+                <div class="row mb-2">
+                    <div class="col-md-12">
+                        @if (User.IsInRole("Manager"))
+                        {
+                            @if (!String.IsNullOrWhiteSpace(HttpContextAccessor.HttpContext.Session.GetString("ProjectId")))
+                            {
+                                <a href="@Url.Action("Edit","Project",new {id= HttpContextAccessor.HttpContext.Session.GetString("ProjectId") })" class="btn btn-primary">Edit Project</a>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Create","Project")" class="btn btn-success">New Project</a>
+                            }
+                        }
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12" id="change-project-content">
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

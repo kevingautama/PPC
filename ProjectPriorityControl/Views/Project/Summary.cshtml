@@ -1,0 +1,345 @@
+﻿@model ProjectPriorityControl.ViewModels.SummaryViewModel
+@{
+    ViewData["Title"] = "Summary";
+}
+
+@section Styles{
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <style>
+        .b0 {
+          border-width: 0 !important; }
+
+        .bl0 {
+          border-left-width: 0 !important; }
+
+        .br0 {
+          border-right-width: 0 !important; }
+
+        .bt0 {
+          border-top-width: 0 !important; }
+
+        .bb0 {
+          border-bottom-width: 0 !important; }
+
+        .br, .b, .ba {
+          border-right: 1px solid rgba(0, 0, 0, 0.12); }
+
+        .bl, .b, .ba {
+          border-left: 1px solid rgba(0, 0, 0, 0.12); }
+
+        .bt, .b, .ba {
+          border-top: 1px solid rgba(0, 0, 0, 0.12); }
+
+        .bb, .b, .ba {
+          border-bottom: 1px solid rgba(0, 0, 0, 0.12); }
+    </style>
+}
+<div class="row">
+    <div class="col-xl-8">
+        <!-- Main card-->
+        <div class="card b mb-2">
+            <div class="card-body">
+                <div class="card-title">
+                    <div class="float-right mt-2">
+                        <div class="badge badge-info">@Model.Status</div>
+                    </div>
+                    <h4 class="my-2">
+                        <span>@Model.Name</span>
+                    </h4>
+                </div>
+                <hr class="ct-horizontal-bars" />
+                <h4>Description</h4>
+                <p>
+                    @Model.Description
+                </p>
+            </div>
+
+        </div>
+        <!-- End Main card-->
+        <!-- Team messages-->
+        <div class="card card-default">
+            <div class="card-body">
+                <div class="card-title">
+                    @if (User.IsInRole("Manager"))
+                    {
+                        <button class="btn btn-primary float-right" id="calculate">Calculate</button>
+                    }
+                    <strong>Task Board</strong>
+                </div>
+                <hr class="ct-horizontal-bars" />
+                <table class="table table-bordered table-striped" id="task-board-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Assigned</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            @*<th></th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var task in Model.Tasks)
+                        {
+                            <tr>
+                                <td>
+                                    @if (task.Rank != null)
+                                    {
+                                        @task.Rank 
+                                    } else
+                                    {
+                                        <text>-</text> 
+                                    }
+                                </td>
+                                <td><a href="@Url.Action("Edit","Task",new {task.Id })" data-task-id="@task.Id">@task.Name</a></td>
+                                <td>@task.Type</td>
+                                <td>@task.AssignedTo</td>
+                                <td>@(task.Score*100)</td>
+                                <td>@task.Status</td>
+                                @*<td><a href="@Url.Action("Edit","Task",new {task.Id })" class="btn btn-outline-primary" data-task-id="@task.Id">Detail</a></td>*@
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <hr class="ct-horizontal-bars" />
+            </div>
+        </div>
+        <!-- End Team messages-->
+    </div>
+    <div class="col-xl-4">
+        <!-- Aside card-->
+        <div class="card b">
+            <div class="card-body bb">
+                <div class="clearfix">
+                    
+                        @if ((Model.Status == "Pending" || Model.Status == "Pause") && User.IsInRole("Manager"))
+                        {
+                            <button class="btn btn-secondary mb-2" type="button" id="start-project-button">
+                                <em class="fa fa-play fa-fw text-muted"></em>
+                                <span>Start</span>
+                            </button>
+                        }
+                        else if (Model.Status == "Progress" && User.IsInRole("Manager"))
+                        {
+                            <button class="btn btn-secondary mb-2" type="button" id="pause-project-button">
+                                <em class="fa fa-pause fa-fw text-muted"></em>
+                                <span>Pause</span>
+                            </button>
+                            <button class="btn btn-secondary mb-2" type="button" id="finish-project-button">
+                                <em class="fa fa-pause fa-fw text-muted"></em>
+                                <span>Finish</span>
+                            </button>
+                        }
+                    
+                    @if (User.IsInRole("Manager") && Model.Status != "Finish")
+                    {
+                    <button class="btn btn-danger mb-2" type="button" id="cancel-project-button">Cancel</button>
+                    }
+                </div>
+            </div>
+            <div class="card-body bb py-3">
+                <div class="d-flex align-items-center">
+                    <div class="w-100">
+                        <div class="progress progress-xs m-0">
+                            <div class="progress-bar bg-info" style="width:@Model.TaskProgress%;"></div>
+                        </div>
+                    </div>
+                    <div class="wd-xxs text-right">
+                        <div class="text-bold text-muted">@Model.TaskProgress%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body bb py-2">
+                @if (!String.IsNullOrWhiteSpace(Model.Tags))
+                {
+                    <ul class="list-inline my-2">
+                        @foreach (var tag in Model.Tags.Split(','))
+                        {
+                            <li class="list-inline-item">
+                                <div class="badge p-1 badge-warning">@tag</div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <small>No Tags</small>
+                }
+            </div>
+            <div class="card-body bb py-3">
+                <p>Metrics</p>
+                <div class="row text-center">
+                    <div class="col-3 col-lg-6 col-xl-3">
+                        <div class="inline my-2" data-sparkline="" values="@Model.IssueTasks.Item2,@Model.IssueTasks.Item1" data-type="pie" data-height="50" data-slice-colors="[&quot;#edf1f2&quot;, &quot;#23b7e5&quot;]"></div>
+                        <p class="mt-3">Issues</p>
+                    </div>
+                    <div class="col-3 col-lg-6 col-xl-3">
+                        <div class="inline my-2" data-sparkline="" values="@Model.BugTasks.Item2,@Model.BugTasks.Item1" data-type="pie" data-height="50" data-slice-colors="[&quot;#edf1f2&quot;, &quot;#27c24c&quot;]"></div>
+                        <p class="mt-3">Bugs</p>
+                    </div>
+                    <div class="col-3 col-lg-6 col-xl-3">
+                        <div class="inline my-2" data-sparkline="" values="@Model.FeatureTasks.Item2,@Model.FeatureTasks.Item1" data-type="pie" data-height="50" data-slice-colors="[&quot;#edf1f2&quot;, &quot;#ff902b&quot;]"></div>
+                        <p class="mt-3">Features</p>
+                    </div>
+                    <div class="col-3 col-lg-6 col-xl-3">
+                        <div class="inline my-2" data-sparkline="" values="@Model.AssignTasks.Item2,@Model.AssignTasks.Item1" data-type="pie" data-height="50" data-slice-colors="[&quot;#edf1f2&quot;, &quot;#f05050&quot;]"></div>
+                        <p class="mt-3">Assigned</p>
+                    </div>
+                </div>
+            </div>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Start date</strong>
+                        </td>
+                        <td>@Model.StartDate</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Members</strong>
+                        </td>
+                        <td>
+                            @if (Model.Members.Count() > 0)
+                            {
+                                foreach (var member in Model.Members)
+                                {
+                                    <p>@member.Name</p>
+                                }
+                            }
+                            else
+                            {
+                                <small>No Member</small>
+                            }
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- end Aside card-->
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/lib/parsley/dist/parsley.min.js"></script>
+    <script src="~/lib/jquery-number-master/jquery.number.min.js"></script>
+    <script src="~/lib/jquery-sparkline/jquery.sparkline.js"></script>
+    <script>
+        $(document).ready(function () {
+            
+
+            var table = $('#task-board-table').DataTable({
+                "searching":false,
+                "info":false,
+                "paging": false,
+                "ordering": false
+            });
+
+            $('#calculate').click(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/Project/Calculate/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to calculate project");
+                    }
+                });
+            })
+
+            //$('#task-board-table').on('click', '.btn', function () {
+            //    $('#task-detail-modal').modal();
+            //});
+
+            $('#start-project-button').click(function () {
+               $.ajax({
+                    type: "POST",
+                    url: "/api/Project/Start/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to start project");
+                    }
+                });
+            });
+
+            $('#pause-project-button').click(function () {
+               $.ajax({
+                    type: "POST",
+                    url: "/api/Project/Pause/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to pause project");
+                    }
+                });
+            });
+
+            $('#finish-project-button').click(function () {
+               $.ajax({
+                    type: "POST",
+                    url: "/api/Project/Finish/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to Finish project");
+                    }
+                });
+            });
+
+            $('#cancel-project-button').click(function () {
+               $.ajax({
+                    type: "POST",
+                    url: "/api/Project/Cancel/@Model.Id",
+                    contentType: "application/json; charset=utf-8",
+                    datatype: "json",
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Failed to cancel project");
+                    }
+                });
+            });
+
+            
+        })
+
+        $(function () {
+
+            $('[data-sparkline]').each(initSparkLine);
+
+            function initSparkLine() {
+                var $element = $(this),
+                    options = $element.data(),
+                    values = options.values && options.values.split(',');
+
+                options.type = options.type || 'bar'; // default chart is bar
+                options.disableHiddenCheck = true;
+
+                $element.sparkline(values, options);
+
+                if (options.resize) {
+                    $(window).resize(function () {
+                        $element.sparkline(values, options);
+                    });
+                }
+            }
+        });
+    </script>
+}

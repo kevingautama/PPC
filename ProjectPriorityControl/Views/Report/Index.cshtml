@@ -1,0 +1,25 @@
+﻿@model IEnumerable<ProjectPriorityControl.ViewModels.Report>
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

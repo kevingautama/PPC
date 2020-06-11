@@ -1,0 +1,195 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+
+@section Styles{
+    <link href="~/lib/datatables/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="~/lib/jqueryui/jquery-ui.css" rel="stylesheet" />
+}
+
+<div class="error-container">
+    
+</div>
+<div class="col-lg-12 grid-margin stretch-card">
+    
+    <div class="card">
+        <div class="card-body">
+            <form id="add-member-form">
+                <div class="input-group" id="add-member-container">
+                    <input type="text" class="form-control" id="member-search" data-parsley-errors-container="#add-member-container" required />
+                    <input type="hidden" id="member-id" />
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit">Add</button>
+                    </span>
+                </div>
+            </form>
+            <hr />
+            <div class="table-responsive">
+                <table class="table" id="members-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                Display Name
+                            </th>
+                            <th>
+                                Email
+                            </th>
+                            <th>
+                                Joined On
+                            </th>
+                            <th>
+
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="remove-confirmation-modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmation Message</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to remove this member from this project?</p>
+                <input type="hidden" id="member-id" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="remove-submit">Remove</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+@section Scripts{
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.min.js"></script>
+    <script src="~/lib/jqueryui/jquery-ui.js"></script>
+    <script src="~/lib/parsley/dist/parsley.js"></script>
+    <script>
+        $(document).ready(function () {
+            var table = $('#members-table').DataTable();
+
+            $('#add-member-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+
+            function RefreshTable() {
+                $.ajax({
+                    url: "/api/Members/",
+                    type: 'GET',
+                    success: function (res) {
+                        table.clear();
+                        $(res).each(function (index, data) {
+                            table.row.add([data.Name, data.Email, data.JoinedOn, '<button class="btn btn-danger remove-button" member-id="' + data.Id + '">Remove</button>']);
+                        })
+                        table.draw();
+                    }
+                });
+            }
+
+            RefreshTable();
+
+            $('#members-table').on('click', '.remove-button', function () {
+                $('#remove-confirmation-modal #member-id').val($(this).attr('member-id'));
+                $('#remove-confirmation-modal').modal();
+            });
+
+            $('#remove-confirmation-modal #remove-submit').click(function () {
+                $.ajax({
+                    url: "/api/Members/",
+                    type: 'DELETE',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: $('#remove-confirmation-modal #member-id').val()}),
+                    success: function (res) {
+                        $('#remove-confirmation-modal').modal('hide');
+                        RefreshTable();
+                        
+                    },
+                    error: function (res) {
+                        var htmlString = '<div class="alert alert-warning alert-dismissible fade show" role="alert"><strong>Failed</strong> There is something wrong.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+                        $('#error-container').html(htmlString);
+                        $('#remove-confirmation-modal').modal('hide');
+                    }
+                });
+            })
+
+            $('#add-member-form').submit(function (e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: "/api/Members/",
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ userId: $('#member-id').val()}),
+                    success: function (res) {
+                        RefreshTable();
+                        $("#member-search").val("");
+                        $("#member-id").val("");
+                    },
+                    error: function (res) {
+                        var htmlString = '<div class="alert alert-warning alert-dismissible fade show" role="alert"><strong>Failed</strong> There is something wrong.<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>';
+                        $('#error-container').html(htmlString);
+                    }
+                });
+            })
+
+            $("#member-search").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '/api/Staffs',
+                        data: {
+                            "search": request.term
+                        },
+                        type: 'GET',
+                        cache: false,
+                        dataType: 'json',
+                        success: function (json) {
+                            response($.map(json, function (data, id) {
+                                return {
+                                    label: data.Name + ' - ' + data.Email,
+                                    value: data.UserId
+                                };
+                            }));
+                        },
+                        error: function (xmlHttpRequest, textStatus, errorThrown) {
+                            console.log('some error occured', textStatus, errorThrown);
+                        }
+                    });
+                },
+                minLength: 1,
+                focus: function (event, ui) {
+                    event.preventDefault();
+                    $("#member-search").val(ui.item.label);
+                    $("#member-id").val(ui.item.value);
+                },
+                select: function (event, ui) {
+                    event.preventDefault();
+                    $("#member-search").val(ui.item.label);
+                    $("#member-id").val(ui.item.value);
+                },
+                change: function (event, ui) {
+                    if (!(ui.item)) {
+                        event.target.value = "";
+                        $("#member-id").val("");
+                    }
+                }
+            });
+        })
+    </script>
+}

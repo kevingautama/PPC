@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "Create";
+}
+
+<div class="col-12 grid-margin">
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div asp-validation-summary="All" class="text-danger"></div>
+            </div>
+            <form asp-action="Create" asp-controller="Project" id="create-form" method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Name</label>
+                            <div class="col-sm-9">
+                                <input name="Name" type="text" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Code</label>
+                            <div class="col-sm-9">
+                                <input name="Code" type="text" class="form-control" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3">Description</label>
+                            <div class="col-sm-9">
+                                <textarea class="form-control" name="Description" rows="5"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Tags</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control" name="Tags" data-role="tagsinput" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">Create</button>
+                <button type="reset" class="btn btn-warning">Reset</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/parsley/dist/parsley.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#create-form').parsley({
+                successClass: "is-valid",
+                errorClass: "is-invalid",
+                errorsWrapper: "<div class='invalid-feedback'></div>",
+                errorTemplate: "<div></div>"
+            });
+        });
+    </script>
+}
